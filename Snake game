@@ -1,0 +1,162 @@
+import turtle
+import time
+import random
+
+# Game configuration
+delay_time = 0.1
+score = 0
+high_score = 0
+
+# Set up the game window
+game_window = turtle.Screen()
+game_window.title("Snake Game")
+game_window.bgcolor("lightblue")
+game_window.setup(width=600, height=600)
+game_window.tracer(0)  # Disable automatic screen updates
+
+# Create the snake's head
+snake_head = turtle.Turtle()
+snake_head.speed(0)
+snake_head.shape("square")
+snake_head.color("black")
+snake_head.penup()
+snake_head.goto(0, 0)
+snake_head.direction = "stop"
+
+# Create the snake's food
+food_item = turtle.Turtle()
+food_item.speed(0)
+food_item.shape("circle")
+food_item.color("red")
+food_item.penup()
+food_item.goto(0, 100)
+
+# List to hold the segments of the snake's body
+snake_segments = []
+
+# Score display turtle
+score_turtle = turtle.Turtle()
+score_turtle.speed(0)
+score_turtle.shape("square")
+score_turtle.color("white")
+score_turtle.penup()
+score_turtle.hideturtle()
+score_turtle.goto(0, 260)
+score_turtle.write("Score: 0  High Score: 0", align="center", font=("Arial", 24, "normal"))
+
+# Movement functions
+def move_up():
+    if snake_head.direction != "down":
+        snake_head.direction = "up"
+
+def move_down():
+    if snake_head.direction != "up":
+        snake_head.direction = "down"
+
+def move_left():
+    if snake_head.direction != "right":
+        snake_head.direction = "left"
+
+def move_right():
+    if snake_head.direction != "left":
+        snake_head.direction = "right"
+
+def update_snake_position():
+    if snake_head.direction == "up":
+        snake_head.sety(snake_head.ycor() + 20)
+    elif snake_head.direction == "down":
+        snake_head.sety(snake_head.ycor() - 20)
+    elif snake_head.direction == "left":
+        snake_head.setx(snake_head.xcor() - 20)
+    elif snake_head.direction == "right":
+        snake_head.setx(snake_head.xcor() + 20)
+
+# Bind the movement functions to key presses
+game_window.listen()
+game_window.onkeypress(move_up, "w")
+game_window.onkeypress(move_down, "s")
+game_window.onkeypress(move_left, "a")
+game_window.onkeypress(move_right, "d")
+
+# Main game loop
+while True:
+    game_window.update()
+
+    # Check for collisions with the borders
+    if abs(snake_head.xcor()) > 290 or abs(snake_head.ycor()) > 290:
+        time.sleep(1)
+        snake_head.goto(0, 0)
+        snake_head.direction = "stop"
+
+        # Move segments off-screen
+        for segment in snake_segments:
+            segment.goto(1000, 1000)
+
+        snake_segments.clear()  # Clear the segments
+        score = 0  # Reset score
+        delay_time = 0.1  # Reset delay
+
+        # Update score display
+        score_turtle.clear()
+        score_turtle.write(f"Score: {score}  High Score: {high_score}", align="center", font=("Arial", 24, "normal"))
+
+    # Check for food collision
+    if snake_head.distance(food_item) < 20:
+        # Move food to a random location
+        food_item.goto(random.randint(-290, 290), random.randint(-290, 290))
+
+        # Add a new segment to the snake
+        new_segment = turtle.Turtle()
+        new_segment.speed(0)
+        new_segment.shape("square")
+        new_segment.color("gray")
+        new_segment.penup()
+        snake_segments.append(new_segment)
+
+        # Speed up the game
+        delay_time -= 0.001
+        score += 10  # Increase score
+
+        # Update high score if needed
+        if score > high_score:
+            high_score = score
+
+        # Update score display
+        score_turtle.clear()
+        score_turtle.write(f"Score: {score}  High Score: {high_score}", align="center", font=("Arial", 24, "normal"))
+
+    # Move the body segments in reverse order
+    for index in range(len(snake_segments) - 1, 0, -1):
+        x = snake_segments[index - 1].xcor()
+        y = snake_segments[index - 1].ycor()
+        snake_segments[index].goto(x, y)
+
+    # Move the first body segment to the head's position
+    if snake_segments:
+        snake_segments[0].goto(snake_head.xcor(), snake_head.ycor())
+
+    update_snake_position()  # Move the snake based on its direction
+
+    # Check for self-collision
+    for segment in snake_segments:
+        if segment.distance(snake_head) < 20:
+            time.sleep(1)
+            snake_head.goto(0, 0)
+            snake_head.direction = "stop"
+
+            # Move segments off-screen
+            for segment in snake_segments:
+                segment.goto(1000, 1000)
+
+            snake_segments.clear()  # Clear segments
+            score = 0  # Reset score
+            delay_time = 0.1  # Reset delay
+
+            # Update score display
+            score_turtle.clear()
+            score_turtle.write(f"Score: {score}  High Score: {high_score}", align="center", font=("Arial", 24, "normal"))
+
+    time.sleep(delay_time)  # Control game speed
+
+game_window.mainloop()
+
